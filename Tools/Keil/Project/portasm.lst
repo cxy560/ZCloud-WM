@@ -1,0 +1,353 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;/*
+    2 00000000         ;    FreeRTOS V7.0.2 - Copyright (C) 2011 Real Time Engi
+                       neers Ltd.
+    3 00000000         ; 
+    4 00000000         ;
+    5 00000000         ;    ***************************************************
+                       ************************
+    6 00000000         ;     *                                                 
+                                             *
+    7 00000000         ;     *    FreeRTOS tutorial books are available in pdf 
+                       and paperback.        *
+    8 00000000         ;     *    Complete, revised, and edited pdf reference m
+                       anuals are also       *
+    9 00000000         ;     *    available.                                   
+                                             *
+   10 00000000         ;     *                                                 
+                                             *
+   11 00000000         ;     *    Purchasing FreeRTOS documentation will not on
+                       ly help you, by       *
+   12 00000000         ;     *    ensuring you get running as quickly as possib
+                       le and with an        *
+   13 00000000         ;     *    in-depth knowledge of how to use FreeRTOS, it
+                        will also help       *
+   14 00000000         ;     *    the FreeRTOS project to continue with its mis
+                       sion of providing     *
+   15 00000000         ;     *    professional grade, cross platform, de facto 
+                       standard solutions    *
+   16 00000000         ;     *    for microcontrollers - completely free of cha
+                       rge!                  *
+   17 00000000         ;     *                                                 
+                                             *
+   18 00000000         ;     *    >>> See http://www.FreeRTOS.org/Documentation
+                        for details. <<<     *
+   19 00000000         ;     *                                                 
+                                             *
+   20 00000000         ;     *    Thank you for using FreeRTOS, and thank you f
+                       or your support!      *
+   21 00000000         ;     *                                                 
+                                             *
+   22 00000000         ;    ***************************************************
+                       ************************
+   23 00000000         ;
+   24 00000000         ;
+   25 00000000         ;    This file is part of the FreeRTOS distribution.
+   26 00000000         ;
+   27 00000000         ;    FreeRTOS is free software; you can redistribute it 
+                       and/or modify it under
+   28 00000000         ;    the terms of the GNU General Public License (versio
+                       n 2) as published by the
+   29 00000000         ;    Free Software Foundation AND MODIFIED BY the FreeRT
+                       OS exception.
+   30 00000000         ;    >>>NOTE<<< The modification to the GPL is included 
+                       to allow you to
+   31 00000000         ;    distribute a combined work that includes FreeRTOS w
+                       ithout being obliged to
+   32 00000000         ;    provide the source code for proprietary components 
+                       outside of the FreeRTOS
+   33 00000000         ;    kernel.  FreeRTOS is distributed in the hope that i
+                       t will be useful, but
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   34 00000000         ;    WITHOUT ANY WARRANTY; without even the implied warr
+                       anty of MERCHANTABILITY
+   35 00000000         ;    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU G
+                       eneral Public License for
+   36 00000000         ;    more details. You should have received a copy of th
+                       e GNU General Public
+   37 00000000         ;    License and the FreeRTOS license exception along wi
+                       th FreeRTOS; if not it
+   38 00000000         ;    can be viewed here: http://www.freertos.org/a00114.
+                       html and also obtained
+   39 00000000         ;    by writing to Richard Barry, contact details for wh
+                       om are available on the
+   40 00000000         ;    FreeRTOS WEB site.
+   41 00000000         ;
+   42 00000000         ;    1 tab == 4 spaces!
+   43 00000000         ;
+   44 00000000         ;    http://www.FreeRTOS.org - Documentation, latest inf
+                       ormation, license and
+   45 00000000         ;    contact details.
+   46 00000000         ;
+   47 00000000         ;    http://www.SafeRTOS.com - A version that is certifi
+                       ed for use in safety
+   48 00000000         ;    critical systems.
+   49 00000000         ;
+   50 00000000         ;    http://www.OpenRTOS.com - Commercial support, devel
+                       opment, porting,
+   51 00000000         ;    licensing and training services.
+   52 00000000         ;*/
+   53 00000000         
+   54 00000000                 INCLUDE          wm_config.inc
+    1 00000000 00000001 
+                       __TLS_OS_UCOS
+                               EQU              1           ;ถþักาป
+    2 00000000         ;__TLS_OS_FREERTOS EQU 1
+    3 00000000                 END
+   55 00000000                 INCLUDE          portmacro.inc
+    1 00000000         ;/*
+    2 00000000         ;    FreeRTOS V7.0.2 - Copyright (C) 2011 Real Time Engi
+                       neers Ltd.
+    3 00000000         ; 
+    4 00000000         ;
+    5 00000000         ;    ***************************************************
+                       ************************
+    6 00000000         ;     *                                                 
+                                             *
+    7 00000000         ;     *    FreeRTOS tutorial books are available in pdf 
+                       and paperback.        *
+    8 00000000         ;     *    Complete, revised, and edited pdf reference m
+                       anuals are also       *
+    9 00000000         ;     *    available.                                   
+                                             *
+   10 00000000         ;     *                                                 
+                                             *
+   11 00000000         ;     *    Purchasing FreeRTOS documentation will not on
+                       ly help you, by       *
+   12 00000000         ;     *    ensuring you get running as quickly as possib
+                       le and with an        *
+   13 00000000         ;     *    in-depth knowledge of how to use FreeRTOS, it
+                        will also help       *
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   14 00000000         ;     *    the FreeRTOS project to continue with its mis
+                       sion of providing     *
+   15 00000000         ;     *    professional grade, cross platform, de facto 
+                       standard solutions    *
+   16 00000000         ;     *    for microcontrollers - completely free of cha
+                       rge!                  *
+   17 00000000         ;     *                                                 
+                                             *
+   18 00000000         ;     *    >>> See http://www.FreeRTOS.org/Documentation
+                        for details. <<<     *
+   19 00000000         ;     *                                                 
+                                             *
+   20 00000000         ;     *    Thank you for using FreeRTOS, and thank you f
+                       or your support!      *
+   21 00000000         ;     *                                                 
+                                             *
+   22 00000000         ;    ***************************************************
+                       ************************
+   23 00000000         ;
+   24 00000000         ;
+   25 00000000         ;    This file is part of the FreeRTOS distribution.
+   26 00000000         ;
+   27 00000000         ;    FreeRTOS is free software; you can redistribute it 
+                       and/or modify it under
+   28 00000000         ;    the terms of the GNU General Public License (versio
+                       n 2) as published by the
+   29 00000000         ;    Free Software Foundation AND MODIFIED BY the FreeRT
+                       OS exception.
+   30 00000000         ;    >>>NOTE<<< The modification to the GPL is included 
+                       to allow you to
+   31 00000000         ;    distribute a combined work that includes FreeRTOS w
+                       ithout being obliged to
+   32 00000000         ;    provide the source code for proprietary components 
+                       outside of the FreeRTOS
+   33 00000000         ;    kernel.  FreeRTOS is distributed in the hope that i
+                       t will be useful, but
+   34 00000000         ;    WITHOUT ANY WARRANTY; without even the implied warr
+                       anty of MERCHANTABILITY
+   35 00000000         ;    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU G
+                       eneral Public License for
+   36 00000000         ;    more details. You should have received a copy of th
+                       e GNU General Public
+   37 00000000         ;    License and the FreeRTOS license exception along wi
+                       th FreeRTOS; if not it
+   38 00000000         ;    can be viewed here: http://www.freertos.org/a00114.
+                       html and also obtained
+   39 00000000         ;    by writing to Richard Barry, contact details for wh
+                       om are available on the
+   40 00000000         ;    FreeRTOS WEB site.
+   41 00000000         ;
+   42 00000000         ;    1 tab == 4 spaces!
+   43 00000000         ;
+   44 00000000         ;    http://www.FreeRTOS.org - Documentation, latest inf
+                       ormation, license and
+   45 00000000         ;    contact details.
+   46 00000000         ;
+   47 00000000         ;    http://www.SafeRTOS.com - A version that is certifi
+                       ed for use in safety
+   48 00000000         ;    critical systems.
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+   49 00000000         ;
+   50 00000000         ;    http://www.OpenRTOS.com - Commercial support, devel
+                       opment, porting,
+   51 00000000         ;    licensing and training services.
+   52 00000000         ;*/
+   53 00000000         
+   54 00000000                 IMPORT           ulCriticalNesting ;
+   55 00000000                 IMPORT           pxCurrentTCB ;
+   56 00000000         
+   57 00000000         
+   58 00000000                 MACRO
+   59 00000000                 portRESTORE_CONTEXT
+   60 00000000         
+   61 00000000                 LDR              R0, =pxCurrentTCB ; Set the LR 
+                                                            to the task stack. 
+                                                             The location was..
+                                                            .
+   62 00000000                 LDR              R0, [R0]    ; ... stored in pxC
+                                                            urrentTCB
+   63 00000000                 LDR              LR, [R0]
+   64 00000000         
+   65 00000000                 LDR              R0, =ulCriticalNesting ; The cr
+                                                            itical nesting dept
+                                                            h is the first item
+                                                             on... 
+   66 00000000                 LDMFD            LR!, {R1}   ; ...the stack.  Lo
+                                                            ad it into the ulCr
+                                                            iticalNesting var.
+   67 00000000                 STR              R1, [R0]    ;
+   68 00000000         
+   69 00000000                 LDMFD            LR!, {R0}   ; Get the SPSR from
+                                                             the stack.
+   70 00000000                 MSR              SPSR_cxsf, R0 ;
+   71 00000000         
+   72 00000000                 LDMFD            LR, {R0-R14}^ ; Restore all sys
+                                                            tem mode registers 
+                                                            for the task.
+   73 00000000                 NOP                          ;
+   74 00000000         
+   75 00000000                 LDR              LR, [LR, #+60] ; Restore the re
+                                                            turn address
+   76 00000000         
+   77 00000000         ; And return - correcting the offset in the LR to obtain
+                        ...
+   78 00000000                 SUBS             PC, LR, #4  ; ...the correct ad
+                                                            dress.
+   79 00000000         
+   80 00000000                 MEND
+   81 00000000         
+   82 00000000         ; /*****************************************************
+                       *****************/
+   83 00000000         
+   84 00000000                 MACRO
+   85 00000000                 portSAVE_CONTEXT
+   86 00000000         
+   87 00000000                 STMDB            SP!, {R0}   ; Store R0 first as
+                                                             we need to use it.
+                                                            
+   88 00000000         
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+   89 00000000                 STMDB            SP,{SP}^    ; Set R0 to point t
+                                                            o the task stack po
+                                                            inter.
+   90 00000000                 NOP                          ;
+   91 00000000                 SUB              SP, SP, #4  ;
+   92 00000000                 LDMIA            SP!,{R0}    ;
+   93 00000000         
+   94 00000000                 STMDB            R0!, {LR}   ; Push the return a
+                                                            ddress onto the sta
+                                                            ck.
+   95 00000000                 MOV              LR, R0      ; Now we have saved
+                                                             LR we can use it i
+                                                            nstead of R0.
+   96 00000000                 LDMIA            SP!, {R0}   ; Pop R0 so we can 
+                                                            save it onto the sy
+                                                            stem mode stack.
+   97 00000000         
+   98 00000000                 STMDB            LR,{R0-LR}^ ; Push all the syst
+                                                            em mode registers o
+                                                            nto the task stack.
+                                                            
+   99 00000000                 NOP                          ;
+  100 00000000                 SUB              LR, LR, #60 ;
+  101 00000000         
+  102 00000000                 MRS              R0, SPSR    ; Push the SPSR ont
+                                                            o the task stack.
+  103 00000000                 STMDB            LR!, {R0}   ;
+  104 00000000         
+  105 00000000                 LDR              R0, =ulCriticalNesting ;
+  106 00000000                 LDR              R0, [R0]    ;
+  107 00000000                 STMDB            LR!, {R0}   ;
+  108 00000000         
+  109 00000000                 LDR              R0, =pxCurrentTCB ; Store the n
+                                                            ew top of stack for
+                                                             the task.
+  110 00000000                 LDR              R1, [R0]    ;    
+  111 00000000                 STR              LR, [R1]    ;
+  112 00000000         
+  113 00000000                 MEND
+  114 00000000         
+  115 00000000                 END
+   56 00000000                 IF               :DEF: __TLS_OS_FREERTOS
+  191                          ENDIF
+  192 00000000                 END
+Command Line: --xref --cpu=ARM966E-S --apcs=interwork --depend=.\objs\portasm.d
+ -o.\objs\portasm.o -I..\..\..\Include -I..\..\..\Src\OS\RTOS\include -I"D:\Pro
+gram Files (x86)\keil4\ARM\RV31\INC" -I"D:\Program Files (x86)\keil4\ARM\CMSIS\
+Include" --list=.\portasm.lst ..\..\..\Src\OS\RTOS\ports\portASM.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+__TLS_OS_UCOS 00000001
+
+Symbol: __TLS_OS_UCOS
+   Definitions
+      At line 1 in file ..\..\..\Include\wm_config.inc
+   Uses
+      None
+Comment: __TLS_OS_UCOS unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+pxCurrentTCB 00000000
+
+Symbol: pxCurrentTCB
+   Definitions
+      At line 55 in file ..\..\..\Src\OS\RTOS\include\portmacro.inc
+   Uses
+      None
+Comment: pxCurrentTCB unused
+ulCriticalNesting 00000000
+
+Symbol: ulCriticalNesting
+   Definitions
+      At line 54 in file ..\..\..\Src\OS\RTOS\include\portmacro.inc
+   Uses
+      None
+Comment: ulCriticalNesting unused
+2 symbols
+335 symbols in table

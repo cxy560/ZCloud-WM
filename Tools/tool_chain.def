@@ -1,0 +1,148 @@
+#---------------------------------------------------------------------------
+# Description: tool_chain_def
+# 
+# Copyright (c) 2014 Winner Microelectronics Co., Ltd. 
+# All rights reserved. 
+# 
+# Author : kevin 
+# 
+# Date : 2014-6-12 
+#---------------------------------------------------------------------------
+TOOL_GNU = 0
+COST_DOWN = 0
+WPS_FEATURE = 1
+IBSS_FEATURE = 1
+AP_FEATURE = 1
+#---------------------------------------------------------------------------
+# Define Path
+#---------------------------------------------------------------------------
+ifeq ($(TOOL_GNU),1)
+TOOL_PATH   = "C:/Program Files/GNUARM"
+CROSS       = $(TOOL_PATH)/bin/arm-elf-
+LIBDIR = "GNU"
+else
+TOOL_PATH   = "C:/Keil/ARM"
+CROSS       = $(TOOL_PATH)/BIN40/
+LIBDIR = "KEIL"
+endif
+
+#---------------------------------------------------------------------------
+# Define Toolchains
+#---------------------------------------------------------------------------
+ifeq ($(TOOL_GNU),1)
+CC          = $(CROSS)gcc
+ASM         = $(CROSS)gcc
+AR          = $(CROSS)ar
+LD			= $(CROSS)ld
+ELF			= $(CROSS)objcopy
+ECHO        = echo
+else
+CC          = $(CROSS)armcc
+ASM         = $(CROSS)armasm
+AR          = $(CROSS)armar
+LD			= $(CROSS)armlink
+ELF			= $(CROSS)fromelf
+ECHO        = echo
+endif
+
+#---------------------------------------------------------------------------
+# Complier options
+#---------------------------------------------------------------------------
+ifeq ($(TOOL_GNU),1)
+CCFLAGS		+= -Wall
+CCFLAGS		+= -DGCC_COMPILE=1
+CCFLAGS		+= -mthumb-interwork
+CCFLAGS		+= -mthumb
+CCFLAGS		+= -Os
+CCFLAGS		+= --function-sections 
+CCFLAGS		+= --data-sections
+ARMCCFLAGS		+= -Wall
+ARMCCFLAGS		+= -DGCC_COMPILE=1
+ARMCCFLAGS		+= -mthumb-interwork
+ARMCCFLAGS		+= -Os
+ARMCCFLAGS		+= --function-sections 
+ARMCCFLAGS		+= --data-sections
+ASMFLAGS	+= -Wa
+ASMFLAGS	+= -mthumb-interwork
+ASMFLAGS	+= -mthumb
+ARFLAGS		= ru
+ARMASMFLAGS	+= -Wa
+ARMASMFLAGS	+= -mthumb-interwork
+ARMARFLAGS		= ru
+else
+CCFLAGS		+= --cpu ARM966E-S
+CCFLAGS		+= -DGCC_COMPILE=0
+CCFLAGS		+= --thumb
+CCFLAGS		+= -c
+CCFLAGS		+= -O2
+CCFLAGS		+= --apcs=interwork
+CCFLAGS		+= --c99 
+CCFLAGS		+= --gnu
+ASMFLAGS	+= --cpu ARM966E-S
+ASMFLAGS	+= --apcs=interwork
+ARFLAGS		= --create
+endif
+
+ifeq ($(COST_DOWN), 1)
+CCFLAGS		+= -DTLS_COST_DOWN=1
+else
+CCFLAGS		+= -DTLS_COST_DOWN=0
+endif
+#---------------------------------------------------------------------------
+# Define Lib Type
+#---------------------------------------------------------------------------
+ifeq ($(TOOL_GNU),1)
+LIBTYPE		= a
+else
+LIBTYPE		= lib
+endif
+
+#---------------------------------------------------------------------------
+# include 
+#---------------------------------------------------------------------------
+ifeq ($(TOOL_GNU),1)
+
+else
+INCLUDE_DIR	+= -I$(TOOL_PATH)/RV31/INC/
+endif
+INCLUDE_DIR	+= -I$(ROOT)/Src/Inc/
+INCLUDE_DIR	+= -I$(ROOT)/Include/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Os/uCOS-II/ports/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Os/uCOS-II/source/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Os/RTOS/include/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Drivers/hspi/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Drivers/uart/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Drivers/uart/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Drivers/gpio/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Drivers/dma/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Drivers/litepoint/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/api/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/lwip1.4.1/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/lwip1.4.1/include/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/lwip1.4.1/include/arch/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/lwip1.4.1/include/ipv4/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/lwip1.4.1/include/ipv4/lwip/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/lwip1.4.1/include/lwip/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Network/lwip1.4.1/include/netif/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Sys/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Common/Params
+INCLUDE_DIR	+= -I$(ROOT)/Src/Wlan/Supplicant/
+INCLUDE_DIR	+= -I$(ROOT)/Src/Wlan/Driver/
+INCLUDE_DIR	+= -I$(ROOT)/App/demo/
+INCLUDE_DIR	+= -I$(ROOT)/App/dhcpserver/
+INCLUDE_DIR	+= -I$(ROOT)/App/dnsserver/
+INCLUDE_DIR	+= -I$(ROOT)/App/httpclient/
+INCLUDE_DIR	+= -I$(ROOT)/App/wm_atcmd/
+#INCLUDE_DIR	+= -I$(ROOT)/App/iperf/
+INCLUDE_DIR	+= -I$(ROOT)/App/matrixssl/
+INCLUDE_DIR	+= -I$(ROOT)/App/matrixssl/crypto/
+INCLUDE_DIR	+= -I$(ROOT)/App/web/
+INCLUDE_DIR	+= -I$(ROOT)/App/libupnp-1.6.19/ixml/inc
+INCLUDE_DIR	+= -I$(ROOT)/App/libupnp-1.6.19/ixml/include
+INCLUDE_DIR	+= -I$(ROOT)/App/libupnp-1.6.19/threadutil/include
+INCLUDE_DIR	+= -I$(ROOT)/App/libupnp-1.6.19/upnp/inc
+INCLUDE_DIR	+= -I$(ROOT)/App/libupnp-1.6.19/upnp/include
+INCLUDE_DIR	+= -I$(ROOT)/App/Expat2.1.0
+INCLUDE_DIR	+= -I$(ROOT)/App/libjson0.8
+INCLUDE_DIR	+= -I$(ROOT)/App/sxmlc4.0.5
+INCLUDE_DIR	+= -I$(ROOT)/App/gmediarender-0.0.6

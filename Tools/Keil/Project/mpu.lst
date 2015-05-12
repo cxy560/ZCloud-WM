@@ -1,0 +1,523 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;;  Copyright ARM Ltd 2002-2008. All rights reserved.
+    2 00000000         ;;
+    3 00000000         ;;  This code provides basic initialization for an ARM94
+                       6E-S including:
+    4 00000000         ;;
+    5 00000000         ;;  - creation of memory protection regions
+    6 00000000         ;;  - setting of region attributes
+    7 00000000         ;;
+    8 00000000         ;;  - enabling the Instruction and Data caches and Write
+                        buffer
+    9 00000000         ;;  - enabling Memory Protection Unit
+   10 00000000         ;;  - regions must be defined for TCM memory addresses
+   11 00000000         ;;
+   12 00000000         ;;  This code must be run from a privileged mode
+   13 00000000         
+   14 00000000         ;;  MPU region size defines
+   15 00000000         
+   16 00000000 0000000B 
+                       Region_4K
+                               EQU              2_01011
+   17 00000000 0000000C 
+                       Region_8K
+                               EQU              2_01100
+   18 00000000 0000000D 
+                       Region_16K
+                               EQU              2_01101
+   19 00000000 0000000E 
+                       Region_32K
+                               EQU              2_01110
+   20 00000000 0000000F 
+                       Region_64K
+                               EQU              2_01111
+   21 00000000 00000010 
+                       Region_128K
+                               EQU              2_10000
+   22 00000000 00000011 
+                       Region_256K
+                               EQU              2_10001
+   23 00000000 00000012 
+                       Region_512K
+                               EQU              2_10010
+   24 00000000 00000013 
+                       Region_1M
+                               EQU              2_10011
+   25 00000000 00000014 
+                       Region_2M
+                               EQU              2_10100
+   26 00000000 00000015 
+                       Region_4M
+                               EQU              2_10101
+   27 00000000 00000016 
+                       Region_8M
+                               EQU              2_10110
+   28 00000000 00000017 
+                       Region_16M
+                               EQU              2_10111
+   29 00000000 00000018 
+                       Region_32M
+                               EQU              2_11000
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   30 00000000 00000019 
+                       Region_64M
+                               EQU              2_11001
+   31 00000000 0000001A 
+                       Region_128M
+                               EQU              2_11010
+   32 00000000 0000001B 
+                       Region_256M
+                               EQU              2_11011
+   33 00000000 0000001C 
+                       Region_512M
+                               EQU              2_11100
+   34 00000000 0000001D 
+                       Region_1G
+                               EQU              2_11101
+   35 00000000 0000001E 
+                       Region_2G
+                               EQU              2_11110
+   36 00000000 0000001F 
+                       Region_4G
+                               EQU              2_11111
+   37 00000000         
+   38 00000000 00000001 
+                       Region_Enable
+                               EQU              2_1
+   39 00000000         
+   40 00000000         
+   41 00000000         
+   42 00000000                 AREA             InitMPU, CODE, READONLY
+   43 00000000         
+   44 00000000                 EXPORT           Init_MPU
+   45 00000000         
+   46 00000000         Init_MPU
+                               FUNCTION
+   47 00000000         
+   48 00000000         ; MPU region definitions/properties
+   49 00000000         ; =================================
+   50 00000000         ;
+   51 00000000         ; Note each Instruction region must have a corresponding
+                        data region
+   52 00000000         ; so inline data accesses will work
+   53 00000000         ;
+   54 00000000         ; Note each region base address must be a multiple of it
+                       s size
+   55 00000000         
+   56 00000000         ; 区域0       : 0   ~     4GB                      NCNB 
+                                    No  access
+   57 00000000         ; 区域1       : 0   ~     0x20000,   指令区(128K)       
+                       Cached NB   Rea d only
+   58 00000000         ;          (debug 256)
+   59 00000000         ; 区域3       : 0x20000 ~ 0x60000    数据区(256K)       
+                        Cached Buffered    Full access
+   60 00000000         
+   61 00000000         
+   62 00000000         
+   63 00000000         
+   64 00000000         
+   65 00000000         ; Set up region 0 - Background and enable
+   66 00000000 E3A0003F        MOV              r0,#(Region_4G << 1) :OR: Regio
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+n_Enable
+   67 00000004 EE060F10        MCR              p15, 0, r0, c6, c0, 0
+   68 00000008         
+   69 00000008         ; Set up region 1 - instrcture and enable
+   70 00000008         
+   71 00000008 E3A00021        MOV              r0,#(Region_128K <<1):OR:Region
+_Enable
+   72 0000000C         ;MOV     r0,#(Region_256K <<1):OR:Region_Enable
+   73 0000000C EE060F11        MCR              p15, 0, r0, c6, c1, 0
+   74 00000010         
+   75 00000010         ; Set up region 2 - RAM and enable
+   76 00000010         ;  LDR     r0, = 0x1C000 :OR: (Region_16K << 1) :OR: Reg
+                       ion_Enable
+   77 00000010         ;  MCR     p15, 0, r0, c6, c2, 0
+   78 00000010         
+   79 00000010         ; Set up region 3 - RAM and enable
+   80 00000010 E59F0064        LDR              r0, = 0x20000 :OR: (Region_256K
+ << 1) :OR: Region_Enable
+   81 00000014 EE060F13        MCR              p15, 0, r0, c6, c3, 0
+   82 00000018         
+   83 00000018         ; Set up region 4 - DSRAM_SD and enable
+   84 00000018         ;   MOV     r0, #0x30000
+   85 00000018         ;        LDR     r0, = 0x30000 :OR: (Region_32K <<1):OR:
+                       Region_Enable
+   86 00000018         ;        MCR     p15, 0, r0, c6, c4, 0
+   87 00000018         
+   88 00000018         ;
+   89 00000018         ; Set up cacheable /bufferable attributes
+   90 00000018         ; MOV     r0, #2_001000               ; cache bits set f
+                       or SRAM and FLASH
+   91 00000018         ; MCR     p15, 0, r0, c2, c0, 0       ; data cacheable
+   92 00000018         
+   93 00000018         ; MOV     r0, #2_000010               ; cache bits set f
+                       or SRAM and FLASH
+   94 00000018         ; MCR     p15, 0, r0, c2, c0, 1       ; instr cacheable
+   95 00000018         
+   96 00000018         ; MOV     r0, #2_001000               ; bufferable bit s
+                       et for RAM
+   97 00000018         ; MCR     p15, 0, r0, c3, c0, 0       ; sets Write Back 
+                       Cacheing
+   98 00000018         
+   99 00000018         ; Set up access permissions
+  100 00000018         
+  101 00000018 E3A00003        MOV              r0,#2_0011
+  102 0000001C         ;ORR     r0,r0,#(2_0011 << 4)        ; INS   set to P: R
+                       W,    U: RW
+  103 0000001C E3800060        ORR              r0,r0,#(2_0110 << 4) ; INS   se
+                                                            t to P: RO,    U: R
+                                                            O
+  104 00000020 E3800C03        ORR              r0,r0,#(2_0011 << 8) ; RAM   se
+                                                            t to P: RW     U: R
+                                                            W
+  105 00000024 E3800A03        ORR              r0,r0,#(2_0011 << 12) ; RAM   s
+                                                            et to P: RW     U: 
+                                                            RW
+  106 00000028         ;ORR     r0,r0,#(2_0011 << 16)       ; RAM   set to P: R
+                       W     U: RW
+  107 00000028         ;
+  108 00000028         ; In this example the access permissions are the same fo
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+                       r both instruction and data sides
+  109 00000028         ; Apply these to both instruction and data side
+  110 00000028 EE050F50        MCR              p15, 0, r0, c5, c0, 2 ; data AP
+                                                            
+  111 0000002C EE050F70        MCR              p15, 0, r0, c5, c0, 3 
+                                                            ; instr AP
+  112 00000030         
+  113 00000030         ;
+  114 00000030         ; Set global core configurations
+  115 00000030         ;===============================
+  116 00000030         ;
+  117 00000030 EE110F10        MRC              p15, 0, r0, c1, c0, 0 ; read CP
+                                                            15 register 1
+  118 00000034 E3C00A01        BIC              r0, r0, #(0x1 <<12) ; ensure I 
+                                                            Cache disabled befo
+                                                            re MPU enable
+  119 00000038 E3C00004        BIC              r0, r0, #(0x1 <<2) ; enable D C
+                                                            ache disabled befor
+                                                            e MPU enable
+  120 0000003C E3800001        ORR              r0, r0, #0x1 ; enable MPU bit
+  121 00000040 EE010F10        MCR              p15, 0, r0, c1, c0, 0 ; write c
+                                                            p15 register 1
+  122 00000044         
+  123 00000044         
+  124 00000044         ;        MRC     p15, 0, r0, c1, c0, 0       ; read CP15
+                        register 1
+  125 00000044         ;        ORR     r0, r0, #(0x1  <<12)        ; enable I 
+                       Cache
+  126 00000044         ;        ORR     r0, r0, #(0x1  <<2)         ; enable D 
+                       Cache
+  127 00000044         ;        MCR     p15, 0, r0, c1, c0, 0       ; write CP1
+                       5 register 1        
+  128 00000044         
+  129 00000044         
+  130 00000044         
+  131 00000044 EE120F10        MRC              p15, 0, r0, c2, c0, 0
+  132 00000048 E3800006        ORR              r0, r0, #(0x6) ;region 1,2
+  133 0000004C EE020F10        MCR              p15, 0, r0, c2, c0, 0 ;enable d
+                                                            ata cachable bits
+  134 00000050         
+  135 00000050 EE120F30        MRC              p15, 0, r0, c2, c0, 1
+  136 00000054 E38000FF        ORR              r0, r0, #(0xff)
+  137 00000058 EE020F30        MCR              p15, 0, r0, c2, c0, 1 ;enable I
+                                                            nstruction cachable
+                                                             bits
+  138 0000005C         
+  139 0000005C EE110F10        MRC              p15, 0, r0, c1, c0, 0 ; read CP
+                                                            15 register 1
+  140 00000060 E3800A01        ORR              r0, r0, #(0x1  <<12) 
+                                                            ; enable I Cache
+  141 00000064 E3800004        ORR              r0, r0, #(0x1  <<2) 
+                                                            ; enable D Cache
+  142 00000068 EE010F10        MCR              p15, 0, r0, c1, c0, 0 ; write C
+                                                            P15 register 1
+  143 0000006C         
+  144 0000006C EE130F10        MRC              p15, 0, r0, c3, c0, 0
+  145 00000070 E38000FF        ORR              r0, r0, #(0xff)
+  146 00000074 EE030F10        MCR              p15, 0, r0, c3, c0, 0 ;enable d
+                                                            ata buffer bits
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  147 00000078         
+  148 00000078         
+  149 00000078                 IMPORT           __main      ; import label to _
+                                                            _main
+  150 00000078 EBFFFFFE        BL               __main      ; branch to C Libra
+                                                            ry entry
+  151 0000007C         
+  152 0000007C                 ENDFUNC
+  153 0000007C         
+  154 0000007C                 END
+              00020023 
+Command Line: --xref --cpu=ARM966E-S --apcs=interwork --depend=.\objs\mpu.d -o.
+\objs\mpu.o -I..\..\..\Include -I..\..\..\Src\OS\RTOS\include -I"D:\Program Fil
+es (x86)\keil4\ARM\RV31\INC" -I"D:\Program Files (x86)\keil4\ARM\CMSIS\Include"
+ --list=.\mpu.lst ..\..\..\Src\Boot\mpu.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+InitMPU 00000000
+
+Symbol: InitMPU
+   Definitions
+      At line 42 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: InitMPU unused
+Init_MPU 00000000
+
+Symbol: Init_MPU
+   Definitions
+      At line 46 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      At line 44 in file ..\..\..\Src\Boot\mpu.s
+Comment: Init_MPU used once
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+Region_128K 00000010
+
+Symbol: Region_128K
+   Definitions
+      At line 21 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      At line 71 in file ..\..\..\Src\Boot\mpu.s
+Comment: Region_128K used once
+Region_128M 0000001A
+
+Symbol: Region_128M
+   Definitions
+      At line 31 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_128M unused
+Region_16K 0000000D
+
+Symbol: Region_16K
+   Definitions
+      At line 18 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_16K unused
+Region_16M 00000017
+
+Symbol: Region_16M
+   Definitions
+      At line 28 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_16M unused
+Region_1G 0000001D
+
+Symbol: Region_1G
+   Definitions
+      At line 34 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_1G unused
+Region_1M 00000013
+
+Symbol: Region_1M
+   Definitions
+      At line 24 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_1M unused
+Region_256K 00000011
+
+Symbol: Region_256K
+   Definitions
+      At line 22 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      At line 80 in file ..\..\..\Src\Boot\mpu.s
+Comment: Region_256K used once
+Region_256M 0000001B
+
+Symbol: Region_256M
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
+   Definitions
+      At line 32 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_256M unused
+Region_2G 0000001E
+
+Symbol: Region_2G
+   Definitions
+      At line 35 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_2G unused
+Region_2M 00000014
+
+Symbol: Region_2M
+   Definitions
+      At line 25 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_2M unused
+Region_32K 0000000E
+
+Symbol: Region_32K
+   Definitions
+      At line 19 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_32K unused
+Region_32M 00000018
+
+Symbol: Region_32M
+   Definitions
+      At line 29 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_32M unused
+Region_4G 0000001F
+
+Symbol: Region_4G
+   Definitions
+      At line 36 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      At line 66 in file ..\..\..\Src\Boot\mpu.s
+Comment: Region_4G used once
+Region_4K 0000000B
+
+Symbol: Region_4K
+   Definitions
+      At line 16 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_4K unused
+Region_4M 00000015
+
+Symbol: Region_4M
+   Definitions
+      At line 26 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Absolute symbols
+
+      None
+Comment: Region_4M unused
+Region_512K 00000012
+
+Symbol: Region_512K
+   Definitions
+      At line 23 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_512K unused
+Region_512M 0000001C
+
+Symbol: Region_512M
+   Definitions
+      At line 33 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_512M unused
+Region_64K 0000000F
+
+Symbol: Region_64K
+   Definitions
+      At line 20 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_64K unused
+Region_64M 00000019
+
+Symbol: Region_64M
+   Definitions
+      At line 30 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_64M unused
+Region_8K 0000000C
+
+Symbol: Region_8K
+   Definitions
+      At line 17 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_8K unused
+Region_8M 00000016
+
+Symbol: Region_8M
+   Definitions
+      At line 27 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      None
+Comment: Region_8M unused
+Region_Enable 00000001
+
+Symbol: Region_Enable
+   Definitions
+      At line 38 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      At line 66 in file ..\..\..\Src\Boot\mpu.s
+      At line 71 in file ..\..\..\Src\Boot\mpu.s
+      At line 80 in file ..\..\..\Src\Boot\mpu.s
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Absolute symbols
+
+
+22 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+__main 00000000
+
+Symbol: __main
+   Definitions
+      At line 149 in file ..\..\..\Src\Boot\mpu.s
+   Uses
+      At line 150 in file ..\..\..\Src\Boot\mpu.s
+Comment: __main used once
+1 symbol
+357 symbols in table

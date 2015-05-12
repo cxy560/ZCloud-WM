@@ -1,0 +1,815 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;-------------------------------------------------------
+                       ---------------
+    2 00000000         ; File Name    : startup.s
+    3 00000000         ; Object       :
+    4 00000000         ; Author       :  
+    5 00000000         ; Date         :  
+    6 00000000         ;
+    7 00000000         ; Copyright (c) 2014 Winner Microelectronics Co., Ltd.
+    8 00000000         ; All rights reserved.
+    9 00000000         ;-------------------------------------------------------
+                       ---------------
+   10 00000000         
+   11 00000000         ; Standard definitions of Mode bits and Interrupt (I & F
+                       ) flags in PSRs
+   12 00000000                 INCLUDE          wm_config.inc
+    1 00000000 00000001 
+                       __TLS_OS_UCOS
+                               EQU              1           ;ถþักาป
+    2 00000000         ;__TLS_OS_FREERTOS EQU 1
+    3 00000000                 END
+   13 00000000 00000010 
+                       Mode_USR
+                               EQU              0x10
+   14 00000000 00000011 
+                       Mode_FIQ
+                               EQU              0x11
+   15 00000000 00000012 
+                       Mode_IRQ
+                               EQU              0x12
+   16 00000000 00000013 
+                       Mode_SVC
+                               EQU              0x13
+   17 00000000 00000017 
+                       Mode_ABT
+                               EQU              0x17
+   18 00000000 0000001B 
+                       Mode_UND
+                               EQU              0x1B
+   19 00000000 0000001F 
+                       Mode_SYS
+                               EQU              0x1F
+   20 00000000         
+   21 00000000 00000080 
+                       I_Bit   EQU              0x80        ; when I bit is set
+                                                            , IRQ is disabled
+   22 00000000 00000040 
+                       F_Bit   EQU              0x40        ; when F bit is set
+                                                            , FIQ is disabled
+   23 00000000         
+   24 00000000         
+   25 00000000         ;// <h> Stack Configuration (Stack Sizes in Bytes)
+   26 00000000         ;//   <o0> Undefined Mode      <0x0-0xFFFFFFFF:8>
+   27 00000000         ;//   <o1> Supervisor Mode     <0x0-0xFFFFFFFF:8>
+   28 00000000         ;//   <o2> Abort Mode          <0x0-0xFFFFFFFF:8>
+   29 00000000         ;//   <o3> Fast Interrupt Mode <0x0-0xFFFFFFFF:8>
+   30 00000000         ;//   <o4> Interrupt Mode      <0x0-0xFFFFFFFF:8>
+   31 00000000         ;//   <o5> User/System Mode    <0x0-0xFFFFFFFF:8>
+   32 00000000         ;// </h>
+   33 00000000         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   34 00000000 00000010 
+                       UND_Stack_Size
+                               EQU              0x00000010
+   35 00000000 00000100 
+                       SVC_Stack_Size
+                               EQU              0x00000100
+   36 00000000 00000010 
+                       ABT_Stack_Size
+                               EQU              0x00000010
+   37 00000000 00000000 
+                       FIQ_Stack_Size
+                               EQU              0x00000000
+   38 00000000 00000100 
+                       IRQ_Stack_Size
+                               EQU              0x00000100
+   39 00000000 00000020 
+                       USR_Stack_Size
+                               EQU              0x00000020
+   40 00000000         
+   42 00000000 00000120 
+                       ISR_Stack_Size
+                               EQU              (UND_Stack_Size + ABT_Stack_Siz
+e +                           FIQ_Stack_Size + IRQ_Stack_Size)
+   43 00000000         
+   44 00000000                 AREA             STACK, NOINIT, READWRITE, ALIGN
+=3
+   45 00000000         
+   46 00000000         Stack_Mem
+                               SPACE            SVC_Stack_Size
+   47 00000100         __initial_sp
+                               SPACE            ISR_Stack_Size
+   48 00000220         
+   49 00000220         Stack_Top
+   50 00000220         
+   51 00000220         ;// <h> Heap Configuration
+   52 00000220         ;//   <o>  Heap Size (in Bytes) <0x0-0xFFFFFFFF>
+   53 00000220         ;// </h>
+   54 00000220                 IF               :DEF: DEBUG
+   57 00000220 00010000 
+                       Heap_Size
+                               EQU              0x00010000
+   58 00000220                 ENDIF
+   59 00000220                 AREA             HEAP, NOINIT, READWRITE, ALIGN=
+3
+   60 00000000         __heap_base
+   61 00000000         Heap_Mem
+                               SPACE            Heap_Size
+   62 00010000         __heap_limit
+   63 00010000         
+   64 00010000         ; Area Definition and Entry Point
+   65 00010000         ;  Startup Code must be linked first at Address at which
+                        it expects to run.
+   66 00010000         
+   67 00010000                 AREA             RESET, CODE, READONLY
+   68 00000000                 ARM
+   69 00000000                 ENTRY
+   70 00000000         
+   71 00000000         
+   72 00000000         ; Exception Vectors
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   73 00000000         ;  Mapped to Address 0.
+   74 00000000         ;  Absolute addressing mode must be used.
+   75 00000000         ;  Dummy Handlers are implemented as infinite loops whic
+                       h can be modified.
+   76 00000000         
+   77 00000000 E59FF018 
+                       Vectors LDR              PC, Reset_Addr
+   78 00000004 E59FF018        LDR              PC, Undef_Addr
+   79 00000008 E59FF018        LDR              PC, SWI_Addr
+   80 0000000C E59FF018        LDR              PC, PAbt_Addr
+   81 00000010 E59FF018        LDR              PC, DAbt_Addr
+   82 00000014 E1A00000        NOP                          ; Reserved Vector
+   83 00000018 E59FF018        LDR              PC, IRQ_Addr
+   84 0000001C E59FF018        LDR              PC, FIQ_Addr
+   85 00000020                 IF               :DEF: __TLS_OS_UCOS
+   86 00000020                 IMPORT           OS_CPU_Tick_ISR
+   87 00000020                 ENDIF
+   88 00000020                 IF               :DEF: __TLS_OS_FREERTOS
+   91                          ENDIF
+   92 00000020         
+   93 00000020 00000000 
+                       Reset_Addr
+                               DCD              Reset_Handler
+   94 00000024 00000000 
+                       Undef_Addr
+                               DCD              Undef_Handler
+   95 00000028                 IF               :DEF: __TLS_OS_UCOS
+   96 00000028 00000000 
+                       SWI_Addr
+                               DCD              SWI_Handler
+   97 0000002C                 ENDIF
+   98 0000002C                 IF               :DEF: __TLS_OS_FREERTOS
+  100                          ENDIF
+  101 0000002C 00000000 
+                       PAbt_Addr
+                               DCD              PAbt_Handler
+  102 00000030 00000000 
+                       DAbt_Addr
+                               DCD              DAbt_Handler
+  103 00000034 00000000        DCD              0           ; Reserved Address
+  104 00000038                 IF               :DEF: __TLS_OS_UCOS
+  105 00000038 00000000 
+                       IRQ_Addr
+                               DCD              OS_CPU_Tick_ISR
+  106 0000003C                 ENDIF
+  107 0000003C                 IF               :DEF: __TLS_OS_FREERTOS
+  109                          ENDIF
+  110 0000003C 00000000 
+                       FIQ_Addr
+                               DCD              FIQ_Handler
+  111 00000040         
+  112 00000040 EAFFFFFE 
+                       Undef_Handler
+                               B                Undef_Handler
+  113 00000044 EAFFFFFE 
+                       SWI_Handler
+                               B                SWI_Handler
+  114 00000048 EAFFFFFE 
+                       PAbt_Handler
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+                               B                PAbt_Handler
+  115 0000004C EAFFFFFE 
+                       DAbt_Handler
+                               B                DAbt_Handler
+  116 00000050         ;IRQ_Handler     B       IRQ_Handler
+  117 00000050 EAFFFFFE 
+                       FIQ_Handler
+                               B                FIQ_Handler
+  118 00000054         
+  119 00000054         
+  120 00000054         ; Reset Handler
+  121 00000054         
+  122 00000054                 EXPORT           Reset_Handler
+  123 00000054         Reset_Handler
+  124 00000054         
+  125 00000054         ; flush v4 I/D caches
+  126 00000054 E3A00000        mov              r0, #0
+  127 00000058 EE070F15        mcr              p15, 0, r0, c7, c5, 0 
+                                                            ; flush v4 I-cache
+  128 0000005C EE070F16        mcr              p15, 0, r0, c7, c6, 0 
+                                                            ; flush v4 D-cache
+  129 00000060         
+  130 00000060         ; disable MMU stuff and caches
+  131 00000060 EE110F10        mrc              p15, 0, r0, c1, c0, 0
+  132 00000064 E3C00C23        bic              r0, r0, #0x00002300 ; clear bit
+                                                             13, 9:8(--v- --RS)
+                                                            
+  133 00000068 E3C00087        bic              r0, r0, #0x00000087 ; clear bit
+                                                             7, 2:0 (B--- -CAM)
+                                                            
+  134 0000006C E3800002        orr              r0, r0, #0x00000002 ; set bit 2
+                                                            (A) Align
+  135 00000070 E3800A01        orr              r0, r0, #0x00001000 ; set bit 1
+                                                            2 (I) I-cache
+  136 00000074 EE010F10        mcr              p15, 0, r0, c1, c0, 0
+  137 00000078         
+  138 00000078         ; copy exception table to 0x0000000
+  139 00000078 E59F0060        ldr              r0, =RESET
+  140 0000007C E59F1060        ldr              r1, =Reset_Handler
+  141 00000080 E3A03000        mov              r3, #0
+  142 00000084         
+  143 00000084 E1500001 
+                       Loop    cmp              r0, r1
+  144 00000088 34902004        ldrcc            r2, [r0], #4
+  145 0000008C 34832004        strcc            r2, [r3], #4
+  146 00000090 3AFFFFFB        bcc              Loop
+  147 00000094         
+  148 00000094 E3A00000        mov              r0, #0
+  149 00000098 EE100F50        mrc              p15, 0, r0, c0, c0, 2
+  150 0000009C         
+  151 0000009C         ; Setup Stack for each mode
+  152 0000009C         
+  153 0000009C E59F0044        LDR              R0, =Stack_Top
+  154 000000A0         
+  155 000000A0         ;  Enter Undefined Instruction Mode and set its Stack Po
+                       inter
+  156 000000A0 E321F0DB        MSR              CPSR_c, #Mode_UND:OR:I_Bit:OR:F
+_Bit
+  157 000000A4 E1A0D000        MOV              SP, R0
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  158 000000A8 E2400010        SUB              R0, R0, #UND_Stack_Size
+  159 000000AC         
+  160 000000AC         ;  Enter Abort Mode and set its Stack Pointer
+  161 000000AC E321F0D7        MSR              CPSR_c, #Mode_ABT:OR:I_Bit:OR:F
+_Bit
+  162 000000B0 E1A0D000        MOV              SP, R0
+  163 000000B4 E2400010        SUB              R0, R0, #ABT_Stack_Size
+  164 000000B8         
+  165 000000B8         ;  Enter FIQ Mode and set its Stack Pointer
+  166 000000B8 E321F0D1        MSR              CPSR_c, #Mode_FIQ:OR:I_Bit:OR:F
+_Bit
+  167 000000BC E1A0D000        MOV              SP, R0
+  168 000000C0 E2400000        SUB              R0, R0, #FIQ_Stack_Size
+  169 000000C4         
+  170 000000C4         ;  Enter IRQ Mode and set its Stack Pointer
+  171 000000C4 E321F0D2        MSR              CPSR_c, #Mode_IRQ:OR:I_Bit:OR:F
+_Bit
+  172 000000C8 E1A0D000        MOV              SP, R0
+  173 000000CC E2400C01        SUB              R0, R0, #IRQ_Stack_Size
+  174 000000D0         
+  175 000000D0         ;  Enter Supervisor Mode and set its Stack Pointer
+  176 000000D0 E321F0D3        MSR              CPSR_c, #Mode_SVC:OR:I_Bit:OR:F
+_Bit
+  177 000000D4 E1A0D000        MOV              SP, R0
+  178 000000D8 E2400C01        SUB              R0, R0, #SVC_Stack_Size
+  179 000000DC         
+  180 000000DC         ; MOV     SP, R0
+  181 000000DC         ; SUB     SL, SP, #USR_Stack_Size
+  182 000000DC         
+  183 000000DC         
+  184 000000DC                 IMPORT           Init_MPU    ; Import label to M
+                                                            PU init code
+  185 000000DC         
+  186 000000DC EAFFFFFE        B                Init_MPU
+  187 000000E0         
+  188 000000E0         ; Enter the C code
+  189 000000E0         
+  190 000000E0         ; IMPORT  __main
+  191 000000E0         ;B         __main
+  192 000000E0         
+  193 000000E0         
+  194 000000E0                 IF               :DEF:__MICROLIB
+  200 000000E0         ; User Initial Stack & Heap
+  201 000000E0 00000000 
+              00000000 
+              00000000         AREA             |.text|, CODE, READONLY
+  202 00000000         
+  203 00000000                 IMPORT           __use_two_region_memory
+  204 00000000                 EXPORT           __user_setup_stackheap
+  205 00000000         __user_setup_stackheap
+  206 00000000 E59F000C        LDR              r0, = Heap_Mem
+  207 00000004 E59FD00C        LDR              sp, = (Stack_Mem + SVC_Stack_Si
+ze)
+  208 00000008 E59F200C        LDR              r2, = (Heap_Mem + Heap_Size)
+  209 0000000C E59F300C        LDR              R3, = Stack_Mem
+  210 00000010 E12FFF1E        BX               lr
+  211 00000014         ;EXPORT  __user_initial_stackheap
+  212 00000014         ;__user_initial_stackheap
+  213 00000014         ;
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+  214 00000014         ;              LDR     R0, =  Heap_Mem
+  215 00000014         ;             LDR     R1, =(Stack_Mem + USR_Stack_Size)
+  216 00000014         ;            LDR     R2, = (Heap_Mem +      Heap_Size)
+  217 00000014         ;           LDR     R3, = Stack_Mem
+  218 00000014         ;          BX      LR
+  219 00000014                 ENDIF
+  220 00000014         
+  221 00000014         
+  222 00000014                 END
+              00000000 
+              00000100 
+              00010000 
+              00000000 
+Command Line: --xref --cpu=ARM966E-S --apcs=interwork --depend=.\objs\start.d -
+o.\objs\start.o -I..\..\..\Include -I..\..\..\Src\OS\RTOS\include -I"D:\Program
+ Files (x86)\keil4\ARM\RV31\INC" -I"D:\Program Files (x86)\keil4\ARM\CMSIS\Incl
+ude" --list=.\start.lst ..\..\..\Src\Boot\start.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+STACK 00000000
+
+Symbol: STACK
+   Definitions
+      At line 44 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: STACK unused
+Stack_Mem 00000000
+
+Symbol: Stack_Mem
+   Definitions
+      At line 46 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 207 in file ..\..\..\Src\Boot\start.s
+      At line 209 in file ..\..\..\Src\Boot\start.s
+
+Stack_Top 00000220
+
+Symbol: Stack_Top
+   Definitions
+      At line 49 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 153 in file ..\..\..\Src\Boot\start.s
+Comment: Stack_Top used once
+__initial_sp 00000100
+
+Symbol: __initial_sp
+   Definitions
+      At line 47 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: __initial_sp unused
+4 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+HEAP 00000000
+
+Symbol: HEAP
+   Definitions
+      At line 59 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: HEAP unused
+Heap_Mem 00000000
+
+Symbol: Heap_Mem
+   Definitions
+      At line 61 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 206 in file ..\..\..\Src\Boot\start.s
+      At line 208 in file ..\..\..\Src\Boot\start.s
+
+__heap_base 00000000
+
+Symbol: __heap_base
+   Definitions
+      At line 60 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: __heap_base unused
+__heap_limit 00010000
+
+Symbol: __heap_limit
+   Definitions
+      At line 62 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: __heap_limit unused
+4 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+DAbt_Addr 00000030
+
+Symbol: DAbt_Addr
+   Definitions
+      At line 102 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 81 in file ..\..\..\Src\Boot\start.s
+Comment: DAbt_Addr used once
+DAbt_Handler 0000004C
+
+Symbol: DAbt_Handler
+   Definitions
+      At line 115 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 102 in file ..\..\..\Src\Boot\start.s
+      At line 115 in file ..\..\..\Src\Boot\start.s
+
+FIQ_Addr 0000003C
+
+Symbol: FIQ_Addr
+   Definitions
+      At line 110 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 84 in file ..\..\..\Src\Boot\start.s
+Comment: FIQ_Addr used once
+FIQ_Handler 00000050
+
+Symbol: FIQ_Handler
+   Definitions
+      At line 117 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 110 in file ..\..\..\Src\Boot\start.s
+      At line 117 in file ..\..\..\Src\Boot\start.s
+
+IRQ_Addr 00000038
+
+Symbol: IRQ_Addr
+   Definitions
+      At line 105 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 83 in file ..\..\..\Src\Boot\start.s
+Comment: IRQ_Addr used once
+Loop 00000084
+
+Symbol: Loop
+   Definitions
+      At line 143 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 146 in file ..\..\..\Src\Boot\start.s
+Comment: Loop used once
+PAbt_Addr 0000002C
+
+Symbol: PAbt_Addr
+   Definitions
+      At line 101 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 80 in file ..\..\..\Src\Boot\start.s
+Comment: PAbt_Addr used once
+PAbt_Handler 00000048
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Symbol: PAbt_Handler
+   Definitions
+      At line 114 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 101 in file ..\..\..\Src\Boot\start.s
+      At line 114 in file ..\..\..\Src\Boot\start.s
+
+RESET 00000000
+
+Symbol: RESET
+   Definitions
+      At line 67 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 139 in file ..\..\..\Src\Boot\start.s
+Comment: RESET used once
+Reset_Addr 00000020
+
+Symbol: Reset_Addr
+   Definitions
+      At line 93 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 77 in file ..\..\..\Src\Boot\start.s
+Comment: Reset_Addr used once
+Reset_Handler 00000054
+
+Symbol: Reset_Handler
+   Definitions
+      At line 123 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 93 in file ..\..\..\Src\Boot\start.s
+      At line 122 in file ..\..\..\Src\Boot\start.s
+      At line 140 in file ..\..\..\Src\Boot\start.s
+
+SWI_Addr 00000028
+
+Symbol: SWI_Addr
+   Definitions
+      At line 96 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 79 in file ..\..\..\Src\Boot\start.s
+Comment: SWI_Addr used once
+SWI_Handler 00000044
+
+Symbol: SWI_Handler
+   Definitions
+      At line 113 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 96 in file ..\..\..\Src\Boot\start.s
+      At line 113 in file ..\..\..\Src\Boot\start.s
+
+Undef_Addr 00000024
+
+Symbol: Undef_Addr
+   Definitions
+      At line 94 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 78 in file ..\..\..\Src\Boot\start.s
+Comment: Undef_Addr used once
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+Undef_Handler 00000040
+
+Symbol: Undef_Handler
+   Definitions
+      At line 112 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 94 in file ..\..\..\Src\Boot\start.s
+      At line 112 in file ..\..\..\Src\Boot\start.s
+
+Vectors 00000000
+
+Symbol: Vectors
+   Definitions
+      At line 77 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: Vectors unused
+16 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 201 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: .text unused
+__user_setup_stackheap 00000000
+
+Symbol: __user_setup_stackheap
+   Definitions
+      At line 205 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 204 in file ..\..\..\Src\Boot\start.s
+Comment: __user_setup_stackheap used once
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+ABT_Stack_Size 00000010
+
+Symbol: ABT_Stack_Size
+   Definitions
+      At line 36 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 42 in file ..\..\..\Src\Boot\start.s
+      At line 163 in file ..\..\..\Src\Boot\start.s
+
+FIQ_Stack_Size 00000000
+
+Symbol: FIQ_Stack_Size
+   Definitions
+      At line 37 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 42 in file ..\..\..\Src\Boot\start.s
+      At line 168 in file ..\..\..\Src\Boot\start.s
+
+F_Bit 00000040
+
+Symbol: F_Bit
+   Definitions
+      At line 22 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 156 in file ..\..\..\Src\Boot\start.s
+      At line 161 in file ..\..\..\Src\Boot\start.s
+      At line 166 in file ..\..\..\Src\Boot\start.s
+      At line 171 in file ..\..\..\Src\Boot\start.s
+      At line 176 in file ..\..\..\Src\Boot\start.s
+
+Heap_Size 00010000
+
+Symbol: Heap_Size
+   Definitions
+      At line 57 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 61 in file ..\..\..\Src\Boot\start.s
+      At line 208 in file ..\..\..\Src\Boot\start.s
+
+IRQ_Stack_Size 00000100
+
+Symbol: IRQ_Stack_Size
+   Definitions
+      At line 38 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 42 in file ..\..\..\Src\Boot\start.s
+      At line 173 in file ..\..\..\Src\Boot\start.s
+
+ISR_Stack_Size 00000120
+
+Symbol: ISR_Stack_Size
+   Definitions
+      At line 42 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 47 in file ..\..\..\Src\Boot\start.s
+Comment: ISR_Stack_Size used once
+I_Bit 00000080
+
+Symbol: I_Bit
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
+   Definitions
+      At line 21 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 156 in file ..\..\..\Src\Boot\start.s
+      At line 161 in file ..\..\..\Src\Boot\start.s
+      At line 166 in file ..\..\..\Src\Boot\start.s
+      At line 171 in file ..\..\..\Src\Boot\start.s
+      At line 176 in file ..\..\..\Src\Boot\start.s
+
+Mode_ABT 00000017
+
+Symbol: Mode_ABT
+   Definitions
+      At line 17 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 161 in file ..\..\..\Src\Boot\start.s
+Comment: Mode_ABT used once
+Mode_FIQ 00000011
+
+Symbol: Mode_FIQ
+   Definitions
+      At line 14 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 166 in file ..\..\..\Src\Boot\start.s
+Comment: Mode_FIQ used once
+Mode_IRQ 00000012
+
+Symbol: Mode_IRQ
+   Definitions
+      At line 15 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 171 in file ..\..\..\Src\Boot\start.s
+Comment: Mode_IRQ used once
+Mode_SVC 00000013
+
+Symbol: Mode_SVC
+   Definitions
+      At line 16 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 176 in file ..\..\..\Src\Boot\start.s
+Comment: Mode_SVC used once
+Mode_SYS 0000001F
+
+Symbol: Mode_SYS
+   Definitions
+      At line 19 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: Mode_SYS unused
+Mode_UND 0000001B
+
+Symbol: Mode_UND
+   Definitions
+      At line 18 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 156 in file ..\..\..\Src\Boot\start.s
+Comment: Mode_UND used once
+Mode_USR 00000010
+
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Absolute symbols
+
+Symbol: Mode_USR
+   Definitions
+      At line 13 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: Mode_USR unused
+SVC_Stack_Size 00000100
+
+Symbol: SVC_Stack_Size
+   Definitions
+      At line 35 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 46 in file ..\..\..\Src\Boot\start.s
+      At line 178 in file ..\..\..\Src\Boot\start.s
+      At line 207 in file ..\..\..\Src\Boot\start.s
+
+UND_Stack_Size 00000010
+
+Symbol: UND_Stack_Size
+   Definitions
+      At line 34 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 42 in file ..\..\..\Src\Boot\start.s
+      At line 158 in file ..\..\..\Src\Boot\start.s
+
+USR_Stack_Size 00000020
+
+Symbol: USR_Stack_Size
+   Definitions
+      At line 39 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: USR_Stack_Size unused
+__TLS_OS_UCOS 00000001
+
+Symbol: __TLS_OS_UCOS
+   Definitions
+      At line 1 in file ..\..\..\Include\wm_config.inc
+   Uses
+      None
+Comment: __TLS_OS_UCOS unused
+18 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+Init_MPU 00000000
+
+Symbol: Init_MPU
+   Definitions
+      At line 184 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 186 in file ..\..\..\Src\Boot\start.s
+Comment: Init_MPU used once
+OS_CPU_Tick_ISR 00000000
+
+Symbol: OS_CPU_Tick_ISR
+   Definitions
+      At line 86 in file ..\..\..\Src\Boot\start.s
+   Uses
+      At line 105 in file ..\..\..\Src\Boot\start.s
+Comment: OS_CPU_Tick_ISR used once
+__use_two_region_memory 00000000
+
+Symbol: __use_two_region_memory
+   Definitions
+      At line 203 in file ..\..\..\Src\Boot\start.s
+   Uses
+      None
+Comment: __use_two_region_memory unused
+3 symbols
+391 symbols in table
